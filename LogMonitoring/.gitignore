@@ -1,0 +1,45 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+
+.vs/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Auto-generated files
+Generated\ Files/
+
+# Debug/Release folders
+**/Debug/
+**/Release/
+
+# Others
+*.cache
+*.pdb
+*.mdb
+*.db
+
+# NuGet
+*.nupkg
+# The packages folder can be ignored unless you’re not using PackageReference
+packages/
+# Uncomment if using the legacy `project.json` based tools
+#project.lock.json
+#*.deps.json
+
+# Local history
+.localhistory/
+
+# User secrets
+secrets.json
+
+# Temporary files
+*.tmp
+*.bak
+*.old
+*.swp
