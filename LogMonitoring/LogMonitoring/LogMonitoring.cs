@@ -39,6 +39,12 @@ public class LogMonitoringImplementation : ILogMonitoring
     private static Result PopulateJobsFromFile(string logFilePath, out List<Job> jobs)
     {
         jobs = new();
+        if (!File.Exists(logFilePath))
+        {
+            Console.WriteLine($"Log file not found: {logFilePath}");
+            return Result.Failure;
+        }
+
         string[] lines = File.ReadAllLines(logFilePath);
         foreach (string line in lines)
         {
