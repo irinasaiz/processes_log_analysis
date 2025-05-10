@@ -114,16 +114,4 @@ public class LogMonitoringImplementation : ILogMonitoring
             return Result.Failure;
         }
     }
-
-    //Test method to check if the jobs are populated correctly
-    public void PrintFirstJob()
-    {
-        if (jobs.Count == 0)
-        {
-            Console.WriteLine("No jobs found.");
-            return;
-        }
-        Job firstJob = jobs.First();
-        Console.WriteLine($"First job: {firstJob.Pid}, {firstJob.Description}, {firstJob.StartTime}, {firstJob.EndTime}");
-    }
 }
