@@ -21,17 +21,20 @@ public class LogMonitoringImplementation : ILogMonitoring
 
     private void CheckJobsDuration()
     {
+        string logFilePath = "C:\\Learning\\processes_log_analysis\\LogMonitoring\\LogMonitoring\\JobDurationOutput.txt";
+        using StreamWriter logFile = new(logFilePath);
+
         foreach (var job in jobs)
         {
             TimeSpan duration = job.EndTime - job.StartTime;
 
             if (duration > TimeSpan.FromMinutes(10))
             {
-                Console.WriteLine($"Error: Job with PID {job.Pid} took longer than 10 minutes. Duration: {duration}");
+                logFile.WriteLine($"Error: Job with PID {job.Pid} took longer than 10 minutes. Duration: {duration}");
             }
             else if (duration > TimeSpan.FromMinutes(5))
             {
-                Console.WriteLine($"Warning: Job with PID {job.Pid} took longer than 5 minutes. Duration: {duration}");
+                logFile.WriteLine($"Warning: Job with PID {job.Pid} took longer than 5 minutes. Duration: {duration}");
             }
         }
     }
