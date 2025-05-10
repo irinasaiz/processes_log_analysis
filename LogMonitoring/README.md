@@ -24,5 +24,10 @@ Apart from the current implementation, what I would have done given more time:
 * For performance reasons, store the jobs in a dictionary, indexed by pid, so that retrieval of information is faster/cleaner.
   I would also store the duration of the job the moment I populate the dictionary, 
   without the need to compute it each time I need info about the job (assuming this will be done repeatedly)
-  Right now I iterate through the list and make difference between end and start.
+  Right now I iterate through the list and compute the difference between end and start (retrieval O(n) with List vs O(1) with dictionary)
+* Implementation with Dictionary: first check if an entry for the current pid exists.
+  If it does not exist, check if in the current line we are parsing START or END. 
+    If we are parsing END, throw an error : log file is malformed (but check the owner of the feature, maybe it's not an error case). 
+    Otherwise, add the current pid with the START time.
+  If it exists, it means it was previously added and it has START time. Change the value of the entry to also have END time and also calculate the duration.
 * PopulateJobsFromFile method has some duplicate code it could be improved
