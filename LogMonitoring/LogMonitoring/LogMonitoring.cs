@@ -5,32 +5,35 @@ public class LogMonitoringImplementation : ILogMonitoring
 {
     List<Job> jobs = new();
 
-    public void MonitorLogs(string logFilePath)
+    public Result MonitorLogs(string logFilePath)
     {
         Console.WriteLine($"Monitoring logs from file: {logFilePath}");
         //TODO: use result to return if log file exists or not
-        jobs = PopulateJobsFromFile(logFilePath);
+        return PopulateJobsFromFile(logFilePath, out jobs);
     }
 
-    private static List<Job> PopulateJobsFromFile(string logFilePath)
+    private static Result PopulateJobsFromFile(string logFilePath, out List<Job> jobs)
     {
-        List<Job> jobs = new();
+        jobs = new();
         string[] lines = File.ReadAllLines(logFilePath);
         foreach (string line in lines)
         {
             string[] parts = line.Split(',');
             if (parts.Length < 4)
             {
-                //TODO: return result fail
-                continue;
+                return Result.Failure;
             }
-            Job job = new Job
+            Job job = new()
             {
                 Pid = int.Parse(parts[3]),
                 Description = parts[1],
             };
 
-            bool isStart = ParseStartOrStop(parts[2]);
+            Result result = ParseStartOrStop(parts[2], out bool isStart);
+            if (result == Result.Failure)
+            {
+                return result;
+            }
             DateTime parsedTime = DateTime.Parse(parts[0]);
             if (isStart)
                 job.StartTime = parsedTime;
@@ -39,16 +42,31 @@ public class LogMonitoringImplementation : ILogMonitoring
 
             jobs.Add(job);
         }
-        return jobs;
+        return Result.Success;
     }
 
-    private static bool ParseStartOrStop(string startOrStop)
+    private static Result ParseStartOrStop(string startOrStop, out bool isStart)
     {
-        string trimmedstartOrStop = startOrStop.Trim();
-        if (trimmedstartOrStop.Equals("start", StringComparison.OrdinalIgnoreCase))
-            return true;
-        else return false;
-        //else return result fail
+        isStart = true;
+        if (string.IsNullOrWhiteSpace(startOrStop))
+        {
+            return Result.Failure;
+        }
+        string trimmedStartOrStop = startOrStop.Trim();
+        if (trimmedStartOrStop.Equals("START"))
+        {
+            isStart = true;
+            return Result.Success;
+        }
+        else if (trimmedStartOrStop.Equals("STOP"))
+        {
+            isStart = false;
+            return Result.Success;
+        }
+        else
+        {
+            return Result.Failure;
+        }
     }
 
     //Test method to check if the jobs are populated correctly
