@@ -8,8 +8,32 @@ public class LogMonitoringImplementation : ILogMonitoring
     public Result MonitorLogs(string logFilePath)
     {
         Console.WriteLine($"Monitoring logs from file: {logFilePath}");
-        //TODO: use result to return if log file exists or not
-        return PopulateJobsFromFile(logFilePath, out jobs);
+        Result populateResult = PopulateJobsFromFile(logFilePath, out jobs);
+        if (populateResult == Result.Failure)
+        {
+            Console.WriteLine("Failed to populate jobs from file.");
+            return Result.Failure;
+        }
+
+        CheckJobsDuration();
+        return Result.Success;
+    }
+
+    private void CheckJobsDuration()
+    {
+        foreach (var job in jobs)
+        {
+            TimeSpan duration = job.EndTime - job.StartTime;
+
+            if (duration > TimeSpan.FromMinutes(10))
+            {
+                Console.WriteLine($"Error: Job with PID {job.Pid} took longer than 10 minutes. Duration: {duration}");
+            }
+            else if (duration > TimeSpan.FromMinutes(5))
+            {
+                Console.WriteLine($"Warning: Job with PID {job.Pid} took longer than 5 minutes. Duration: {duration}");
+            }
+        }
     }
 
     private static Result PopulateJobsFromFile(string logFilePath, out List<Job> jobs)
@@ -23,24 +47,37 @@ public class LogMonitoringImplementation : ILogMonitoring
             {
                 return Result.Failure;
             }
-            Job job = new()
-            {
-                Pid = int.Parse(parts[3]),
-                Description = parts[1],
-            };
 
-            Result result = ParseStartOrStop(parts[2], out bool isStart);
-            if (result == Result.Failure)
+            Result resultStartOrStop = ParseStartOrStop(parts[2], out bool isStart);
+            if (resultStartOrStop == Result.Failure)
             {
-                return result;
+                return resultStartOrStop;
             }
             DateTime parsedTime = DateTime.Parse(parts[0]);
-            if (isStart)
-                job.StartTime = parsedTime;
-            else
-                job.EndTime = parsedTime;
 
-            jobs.Add(job);
+            int pid = int.Parse(parts[3]);
+            Job existingJob = jobs.FirstOrDefault(job => job.Pid == pid);
+            if (existingJob == null)
+            {
+                Job job = new()
+                {
+                    Pid = int.Parse(parts[3]),
+                    Description = parts[1],
+                };                
+                if (isStart)
+                    job.StartTime = parsedTime;
+                else
+                    job.EndTime = parsedTime;
+
+                jobs.Add(job);
+            }
+            else
+            {
+                if (isStart)
+                    existingJob.StartTime = parsedTime;
+                else
+                    existingJob.EndTime = parsedTime;
+            }
         }
         return Result.Success;
     }
@@ -58,7 +95,7 @@ public class LogMonitoringImplementation : ILogMonitoring
             isStart = true;
             return Result.Success;
         }
-        else if (trimmedStartOrStop.Equals("STOP"))
+        else if (trimmedStartOrStop.Equals("END"))
         {
             isStart = false;
             return Result.Success;
