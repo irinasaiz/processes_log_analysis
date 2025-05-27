@@ -3,26 +3,26 @@
 namespace LogMonitoring;
 public class LogMonitoringImplementation : ILogMonitoring
 {
-    List<Job> jobs = new();
+    List<Job> jobs = [];
+    readonly string outputFile = "C:\\Learning\\processes_log_analysis\\LogMonitoring\\LogMonitoring\\JobDurationOutput.txt";
 
     public Result MonitorLogs(string logFilePath)
     {
         Console.WriteLine($"Monitoring logs from file: {logFilePath}");
-        Result populateResult = PopulateJobsFromFile(logFilePath, out jobs);
+        Result populateResult = PopulateJobsFromFile(logFilePath);
         if (populateResult == Result.Failure)
         {
             Console.WriteLine("Failed to populate jobs from file.");
             return Result.Failure;
         }
 
-        CheckJobsDuration();
+        ProcessJobsDuration();
         return Result.Success;
     }
 
-    private void CheckJobsDuration()
+    private void ProcessJobsDuration()
     {
-        string logFilePath = "C:\\Learning\\processes_log_analysis\\LogMonitoring\\LogMonitoring\\JobDurationOutput.txt";
-        using StreamWriter logFile = new(logFilePath);
+        using StreamWriter logFile = new(outputFile);
 
         foreach (var job in jobs)
         {
@@ -39,9 +39,8 @@ public class LogMonitoringImplementation : ILogMonitoring
         }
     }
 
-    private static Result PopulateJobsFromFile(string logFilePath, out List<Job> jobs)
+    private Result PopulateJobsFromFile(string logFilePath)
     {
-        jobs = new();
         if (!File.Exists(logFilePath))
         {
             Console.WriteLine($"Log file not found: {logFilePath}");
@@ -57,7 +56,7 @@ public class LogMonitoringImplementation : ILogMonitoring
                 return Result.Failure;
             }
 
-            Result resultStartOrStop = ParseStartOrStop(parts[2], out bool isStart);
+            Result resultStartOrStop = Helpers.ParseStartOrStop(parts[2], out bool isStart);
             if (resultStartOrStop == Result.Failure)
             {
                 return resultStartOrStop;
@@ -89,29 +88,5 @@ public class LogMonitoringImplementation : ILogMonitoring
             }
         }
         return Result.Success;
-    }
-
-    private static Result ParseStartOrStop(string startOrStop, out bool isStart)
-    {
-        isStart = true;
-        if (string.IsNullOrWhiteSpace(startOrStop))
-        {
-            return Result.Failure;
-        }
-        string trimmedStartOrStop = startOrStop.Trim();
-        if (trimmedStartOrStop.Equals("START"))
-        {
-            isStart = true;
-            return Result.Success;
-        }
-        else if (trimmedStartOrStop.Equals("END"))
-        {
-            isStart = false;
-            return Result.Success;
-        }
-        else
-        {
-            return Result.Failure;
-        }
-    }
+    }    
 }
